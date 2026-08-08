@@ -77,7 +77,7 @@ class UmaroCave(Event):
         #      change the entrance event to somewhere with more space where can check for umaro recruited?
 
         # change dialog since no magicite in eye now
-        self.dialogs.set_text(dialog_id.UMARO_CAVE_CARVING, "Touch the eye of the carving?<line><choice> Yes<line><choice> No<end>")
+        self.dialogs.set_text(1525, "Touch the eye of the carving?<line><choice> Yes<line><choice> No<end>")
 
         space = Reserve(0xcd6f8, 0xcd6fd, "narshe wor umaro carving magicite flash", field.NOP())
         space = Reserve(0xcd709, 0xcd736, "narshe wor get esper from bone carving", field.NOP())
@@ -142,7 +142,7 @@ class UmaroCave(Event):
 
     def item_mod(self, item):
         # change dialog from magicite to item
-        self.dialogs.set_text(dialog_id.UMARO_CAVE_CARVING, "Remove the item from the eye of the carving?<line><choice> Yes<line><choice> No<end>")
+        self.dialogs.set_text(1525, "Remove the item from the eye of the carving?<line><choice> Yes<line><choice> No<end>")
 
         space = Reserve(0xcd6f8, 0xcd6fd, "umaro cave esper sound effect and blue screen flash", field.NOP())
         space = Reserve(0xcd709, 0xcd72e, "umaro cave animate receiving esper", field.NOP())

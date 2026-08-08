@@ -10,6 +10,7 @@ import data.blitzes as blitzes
 import data.lores as lores
 import data.rages as rages
 import data.dances as dances
+import data.skill_pools as skill_pools
 import data.steal as steal
 import data.sketches as sketches
 import data.controls as controls
@@ -58,6 +59,9 @@ class Data:
         self.dances = dances.Dances(rom, args, self.characters)
         self.dances.mod()
 
+        self.skill_pools = skill_pools.SkillPools(rom, args, self.spells, self.characters)
+        self.skill_pools.mod()
+
         self.steal = steal.Steal(rom, args)
         self.steal.mod()
 
@@ -105,6 +109,7 @@ class Data:
         self.lores.write()
         self.rages.write()
         self.dances.write()
+        self.skill_pools.write()
         self.steal.write()
         self.sketches.write()
         self.controls.write()

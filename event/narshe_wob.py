@@ -108,11 +108,15 @@ class NarsheWOB(Event):
         school_map_id = 0x068
         pot_heal_address = 0xc33ae
 
-        # Claim scratch dialog slots for the limited-heals bucket prompts.
-        three_id = self.dialogs.allocate_dialog("Drink from the bucket?<line>(3 drinks left)<line><choice> Yes<line><choice> No<end>")
-        two_id = self.dialogs.allocate_dialog("Drink from the bucket?<line>(2 drinks left)<line><choice> Yes<line><choice> No<end>")
-        one_id = self.dialogs.allocate_dialog("Drink from the bucket?<line>(1 drink left)<line><choice> Yes<line><choice> No<end>")
-        empty_id = self.dialogs.allocate_dialog("The bucket is empty.<end>")
+        three_id = 1470
+        two_id = 1469
+        one_id = 1468
+        empty_id = 1467
+
+        self.dialogs.set_text(three_id, "Drink from the bucket?<line>(3 drinks left)<line><choice> Yes<line><choice> No<end>")
+        self.dialogs.set_text(two_id, "Drink from the bucket?<line>(2 drinks left)<line><choice> Yes<line><choice> No<end>")
+        self.dialogs.set_text(one_id, "Drink from the bucket?<line>(1 drink left)<line><choice> Yes<line><choice> No<end>")
+        self.dialogs.set_text(empty_id, "The bucket is empty.<end>")
 
         drink_src = [
             field.BranchIfEventBitClear(event_bit.SCHOOL_LIMITED_HEALS_1, "TOP_CLEAR"),

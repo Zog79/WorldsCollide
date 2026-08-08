@@ -10,7 +10,7 @@ def parse(parser):
                       help = "Display original character names in party and party select menus")
     misc.add_argument("-rr", "--random-rng", action = "store_true",
                       help = "(DEPRECATED -- Always On) Randomize in-game RNG table. Affects Setzer's Slots, Auction House, Ebot's Rock, ...")
-    misc.add_argument("--random-clock", action = "store_true",
+    misc.add_argument("-rc", "--random-clock", action = "store_true",
                       help = "(DEPRECATED -- Always On) Randomize clock's correct time and NPC clues in Zozo")
     misc.add_argument("-scan", "--scan-all", action = "store_true",
                       help = "All enemies scannable. All characters start with scan learned. Scan costs 0 MP. Useful for testing/debugging")

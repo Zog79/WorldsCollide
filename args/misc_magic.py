@@ -53,8 +53,8 @@ def menu(args):
                 value = value.replace("Random Value ", "")
                 value = value.replace("Random Percent ", "")
             entries[index] = (key, value, unique_name)
-        except AttributeError:
-            pass # value is not a string (e.g. a submenu), leave entry unchanged
+        except:
+            pass
     return (name(), entries)
 
 def log(args):

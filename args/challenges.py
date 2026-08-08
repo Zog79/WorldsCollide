@@ -27,24 +27,9 @@ def parse(parser):
     challenges.add_argument("-nosaves", "--no-saves", action = "store_true",
                             help = "Ironmog Mode: You cannot save (but save points still work for Tents/Sleeping Bags)")
 
-    from data.characters import Characters
-    require_character_options = [name.lower() for name in Characters.DEFAULT_NAME]
-    require_character_options.append("random")
-    require_character_options.append("randomngu")
-    challenges.add_argument("-rc", "--require-characters", nargs = "+", type = str.lower,
-                            choices = require_character_options, default = [],
-                            help = "Force the listed character(s) (1-4) to be in the party at all times. "
-                                   "Accepts random/randomngu. Compatible with the starting character flags: "
-                                   "a required character that is not already a starting character is added "
-                                   "as an additional one.")
-
 def process(args):
     from constants.spells import black_magic_ids, white_magic_ids, gray_magic_ids, spell_id
     from data.esper_spell_tiers import top_spells
-
-    # NOTE: required characters (-rc) are de-duplicated/validated in args/starting_party.py and
-    # resolved (random choices, unmovable bitmask) in resolve_required_characters() once the rng
-    # is seeded -- see args/arguments.py.
 
     # If no_ultima is on, add it to our exclude list for downstream use
     # If permadeath is on, add it to our exclude list for downstream use
@@ -109,9 +94,6 @@ def flags(args):
     if args.no_saves:
         flags += " -nosaves"
 
-    if args.require_characters:
-        flags += " -rc " + " ".join(args.require_characters)
-
     return flags
 
 def options(args):
@@ -132,7 +114,6 @@ def options(args):
         ("Ultima", ultima, "ultima"),
         ("Remove Learnable Spells", args.remove_learnable_spell_ids, "remove_learnable_spell_ids"),
         ("No Saves", args.no_saves, "no_saves"),
-        ("Require Characters", args.require_characters, "require_characters"),
     ]
 
 def _format_spells_log_entries(spell_ids):
@@ -142,16 +123,8 @@ def _format_spells_log_entries(spell_ids):
         spell_entries.append(("", id_spell[spell_id]))
     return spell_entries
 
-def _require_characters_label(name):
-    if name == "random":
-        return "Random"
-    if name == "randomngu":
-        return "Random (No Gogo/Umaro)"
-    return name.capitalize()
-
 def menu(args):
     from menus.flags_remove_learnable_spells import FlagsRemoveLearnableSpells
-    from menus.flags_require_characters import FlagsRequireCharacters
 
     entries = options(args)
     for index, entry in enumerate(entries):
@@ -162,8 +135,6 @@ def menu(args):
             entries[index] = ("No Free Chars/Espers", entry[1], unique_name)
         elif key == "Remove Learnable Spells":
             entries[index] = ("Remove Spells", FlagsRemoveLearnableSpells(value), unique_name) # flags sub-menu
-        elif key == "Require Characters":
-            entries[index] = ("Require Chars", FlagsRequireCharacters(value), unique_name) # flags sub-menu
 
     return (name(), entries)
 
@@ -182,12 +153,6 @@ def log(args):
             log.append(format_option(*entry))
             for spell_entry in _format_spells_log_entries(value):
                 log.append(format_option(*spell_entry))
-        elif key == "Require Characters":
-            if len(value) == 0:
-                entry = (key, "None", unique_name)
-            else:
-                entry = (key, ", ".join(_require_characters_label(name) for name in value), unique_name)
-            log.append(format_option(*entry))
         else:
             log.append(format_option(*entry))
 

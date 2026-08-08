@@ -2,7 +2,6 @@ from data.dialogs.dialog import Dialog
 from data.structures import DataList
 from memory.space import Space
 from data.fonts import widths
-from data.dialog_id import FREE_RANGE, DialogSpaceError
 import data.text
 
 class Dialogs():
@@ -113,27 +112,6 @@ class Dialogs():
         for dialog_id in free.multi_line_battle_dialogs:
             self.multi_line_battle_dialogs[dialog_id].text = ""
             self.free_multi_line_battle_dialogs.append(dialog_id)
-
-        # Pool of free regular dialog slots handed out by allocate_dialog().
-        # See data/dialog_id.py FREE_RANGE (the vanilla Maduin/Madonna esper-world
-        # conversation, which never plays in WC).
-        self.free_dialogs = list(FREE_RANGE)
-
-    def allocate_dialog(self, text):
-        """Claim the next unused dialog slot from the free pool, set its text,
-        and return the claimed dialog ID.
-
-        Slots are handed out first-come, first-served from data/dialog_id.py's
-        FREE_RANGE so callers that just need a scratch dialog don't have to
-        track specific IDs. Raises DialogSpaceError when the pool is exhausted.
-        """
-        if not self.free_dialogs:
-            raise DialogSpaceError(
-                f"No free dialog slots remaining "
-                f"(pool {FREE_RANGE.start}-{FREE_RANGE.stop - 1} exhausted)")
-        dialog_id = self.free_dialogs.pop(0)
-        self.set_text(dialog_id, text)
-        return dialog_id
 
     def set_text(self, id, text):
         self.dialogs[id].text = text

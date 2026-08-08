@@ -75,7 +75,6 @@ class Item():
         self.same_damage_back_row   = (data[19] & 0x20) >> 5
         self.allow_two_hands        = (data[19] & 0x40) >> 6
         self.enable_runic           = (data[19] & 0x80) >> 7
-        self.relic_equip_cond_byte  = (data[25])
         self.price                  = int.from_bytes(data[28:30], "little")
 
     def write(self):
@@ -100,14 +99,11 @@ class Item():
         data[19]   |= self.allow_two_hands                  << 6
         data[19]   |= self.enable_runic                     << 7
 
-        data[25]    = self.relic_equip_cond_byte
-
         self.rom.set_byte(self.data_addr + 1, data[1])
         self.rom.set_byte(self.data_addr + 2, data[2])
         self.rom.set_byte(self.data_addr + 3, self.learnable_spell_rate)
         self.rom.set_byte(self.data_addr + 4, self.learnable_spell)
         self.rom.set_byte(self.data_addr + 19, data[19])
-        self.rom.set_byte(self.data_addr + 25, data[25])
         self.rom.set_short(self.data_addr + 28, self.price)
 
     def print(self):

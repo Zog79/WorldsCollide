@@ -161,7 +161,7 @@ class LoneWolf(Event):
         item_name = data.text.convert(self.items.get_name(self.reward2.id), data.text.TEXT1) # item names are stored as TEXT2, dialogs are TEXT1
 
         self.dialogs.set_text(1765, "<line><     >Grrrr…<line><     >You'll never get this<line><     >“" + item_name + "”!<end>")
-        self.dialogs.set_text(dialog_id.LONE_WOLF_GOT_ITEM, "<line><      >Got “" + item_name + "”!<end>")
+        self.dialogs.set_text(1742, "<line><      >Got “" + item_name + "”!<end>")
 
         space = Reserve(0xcd59f, 0xcd59f, "lone wolf item received", field.NOP())
         space.write(
@@ -281,7 +281,7 @@ class LoneWolf(Event):
                 field_entity.Move(direction.DOWN, 8),
             ),
             field.AddItem(self.reward2.id),
-            field.Dialog(dialog_id.LONE_WOLF_GOT_ITEM),
+            field.Dialog(1742),
             field.HideEntity(self.mog_moogle_room_npc_id),
             field.ClearEventBit(npc_bit.MOG_MOOGLE_ROOM_WOR),
             field.SetEventBit(event_bit.GOT_BOTH_REWARDS_LONE_WOLF),

@@ -241,9 +241,6 @@ def _other_options_log(args):
 
     return log
 
-def name():
-    return "Graphics"
-
 def log(args):
     lcolumn = [""]
     lcolumn.extend(_sprite_palettes_log(args))
@@ -258,4 +255,4 @@ def log(args):
     rcolumn.extend(_character_customization_log(args))
 
     from log import section
-    section(name(), lcolumn, rcolumn)
+    section("Graphics", lcolumn, rcolumn)

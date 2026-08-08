@@ -281,11 +281,6 @@ class Airship(Event):
             field.DialogBranch(change_party_unequip_dialog_id, dest1 = 0xaf5a8, dest2 = 0xc359d, dest3 = 0xc351e, dest4 = field.RETURN),
         )
 
-        # Re-emit the reform-party select so required characters (-rc) are kept unmovable.
-        # The required characters are already in the party here, so no pre-placement is needed.
-        space = Reserve(0xacba3, 0xacba6, "airship reform party", field.NOP())
-        space.write(field.SelectParties(1))
-
         space = Reserve(0xc3510, 0xc351d, "airship unequip some party members dialog choice", field.NOP())
         space.write(
             field.Branch(change_party_unequip_dialog),
@@ -346,7 +341,6 @@ class Airship(Event):
         space.write(
             field.SetParty(1),
             field.Call(field.REMOVE_ALL_CHARACTERS_FROM_ALL_PARTIES),
-            # REFRESH_CHARACTERS_AND_SELECT_PARTY pre-places any required characters (-rc)
             field.Call(field.REFRESH_CHARACTERS_AND_SELECT_PARTY),
             field.UpdatePartyLeader(),
             field.ShowEntity(field_entity.PARTY0),
@@ -389,7 +383,7 @@ class Airship(Event):
             field.Branch(ORIGINAL_YES_CODE),
 
             "INSUFFICIENT_MONEY",
-            field.Dialog(dialog_id.NOT_ENOUGH_GP),   # not enough money...
+            field.Dialog(2748),   # not enough money...
             field.ClearEventBit(event_bit.NOT_ENOUGH_GP),
             field.Return()
         ]

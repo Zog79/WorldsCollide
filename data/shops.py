@@ -76,26 +76,14 @@ class Shops():
 
             random.shuffle(item_counts)
 
-            # if every shop with open slots already stocks the next item, the loop
-            # below can no longer make progress; fail loudly instead of hanging.
-            # the guards consume no rng so seed output is unchanged
-            stalled_picks = 0
-            MAX_STALLED_PICKS = 10000
-
             while len(items) > 0:
-                if not shop_indices or stalled_picks > MAX_STALLED_PICKS:
-                    raise RuntimeError(f"shops shuffle: cannot place {len(items)} remaining items, "
-                                       f"{len(shop_indices)} shops have open slots")
                 shop_index = random.choice(shop_indices)
                 shop = type_shops[shop_type][shop_index]
                 if not shop.contains(items[-1]):
-                    stalled_picks = 0
                     item = items.pop()
                     shop.append(item)
                     if shop.item_count == item_counts[shop_index]:
                         shop_indices.remove(shop_index)
-                else:
-                    stalled_picks += 1
 
     def random_tiered(self):
         def get_item(item_type, exclude = None):
@@ -246,7 +234,6 @@ class Shops():
         name_id["Dragon Horn"], name_id["Gem Box"], name_id["Merit Award"],
         name_id["Exp. Egg"], name_id["Marvel Shoes"], name_id["Ribbon"],
         name_id["Genji Glove"], name_id["Gauntlet"], name_id["Moogle Charm"],
-        name_id["Atlas Armlet"], name_id["DragoonBoots"],
     }
 
     # Basic healing items: larger packs (3-10)
@@ -289,24 +276,22 @@ class Shops():
             else:
                 return 1
 
-        # Relics: 1-4, except special relics (1) and earrings (1-2)
+        # Relics: 1-4, except special relics which are singles
         if item_id in RELICS:
             if item_id in self.SPECIAL_RELICS:
                 return 1
-            elif item_id == name_id["Earrings"]:
-                return random.randint(1, 2)
             return random.randint(1, 4)
 
-        # Basic healing items: 1-4 for Fenix Down, 2-6 for everything else
+        # Basic healing items: 1-5 for Fenix Down, 3-8 for everything else
         if item_id in self.BASIC_HEALING:
             if item_id == name_id["Fenix Down"]:
-                return random.randint(1, 4)
+                return random.randint(1, 5)
             else:
-                return random.randint(2, 6)
+                return random.randint(3, 8)
 
-        # High healing items: 1-2
+        # High healing items: 1-3
         if item_id in self.HIGH_HEALING:
-            return random.randint(1, 2)
+            return random.randint(1, 3)
 
         # Elixir, Megalixir: singles
         if item_id in (name_id["Elixir"], name_id["Megalixir"]):

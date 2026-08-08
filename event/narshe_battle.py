@@ -92,7 +92,6 @@ class NarsheBattle(Event):
             )
         space.write(
             field.Call(field.REMOVE_ALL_CHARACTERS_FROM_ALL_PARTIES),
-            # REFRESH_CHARACTERS_AND_SELECT_TWO_PARTIES pre-places any required characters (-rc)
             field.Call(field.REFRESH_CHARACTERS_AND_SELECT_TWO_PARTIES),
             field.Branch(space.end_address + 1),
         )

@@ -243,10 +243,10 @@ class Zozo(Event):
             divisor = 20
         if solution_values[digit_index] % divisor != 0:
             options[digit_index].values = [value for value in options[digit_index].values if value % divisor != 0]
-            self.dialogs.set_text(dialog_id.ZOZO_CLOCK_CLUE, f"The {options[digit_index].name}s? They're divisible by {divisor}!<end>")
+            self.dialogs.set_text(1059, f"The {options[digit_index].name}s? They're divisible by {divisor}!<end>")
         else:
             options[digit_index].values = [value for value in options[digit_index].values if value % divisor == 0]
-            self.dialogs.set_text(dialog_id.ZOZO_CLOCK_CLUE, f"The {options[digit_index].name}s? They're not divisible by {divisor}!<end>")
+            self.dialogs.set_text(1059, f"The {options[digit_index].name}s? They're not divisible by {divisor}!<end>")
 
         # remaining clues exclude one value each
         Clue = namedtuple("Clue", ["dialog_id", "dialog_string", "string_format"])

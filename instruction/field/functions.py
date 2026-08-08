@@ -1,9 +1,7 @@
 from memory.space import Bank, Reserve, Write
 import instruction.field.instructions as field
 import instruction.field.entity as field_entity
-import instruction.field.required_characters as required_characters
 import data.battle_bit as battle_bit
-import args
 
 RETURN = 0xa5eb3    # return command, used for branching
 END = 0xa5eb4       # end command, used for branching
@@ -45,36 +43,12 @@ def _refresh_characters_and_select_parties_mod(count):
         field.Call(DELETE_ALL_CHARACTERS),
         field.Call(CREATE_AVAILABLE_CHARACTERS),
         field.RefreshEntities(),
-    ]
-    # required characters (-rc) are unmovable, so they must be pre-placed into a party before the
-    # select screen or the player cannot complete it (softlock).  this is done here, in the shared
-    # subroutine, so that every caller (including RecruitAndSelectParty) is handled.
-    if args.required_character_ids:
-        if count == 1:
-            src += required_characters.one_party_placement()
-        elif count == 2:
-            src += [field.Call(required_characters.two_party_placement())]
-    src += [
         field.SelectParties(count),
         field.Call(DELETE_CHARACTERS_NOT_IN_ANY_PARTY),
         field.RefreshEntities(),
         field.Return(),
     ]
     return src
-
-class _RequiredCharactersGuard:
-    # placeholder for a select-parties subroutine that has no required-character (-rc) placement.
-    # using it (e.g. wrapping it in a Call) while characters are required would leave them
-    # unmovable and outside a party (softlock), so fail loudly instead of generating bad code.
-    def __init__(self, name):
-        self._name = name
-
-    def _fail(self, *_args, **_kwargs):
-        raise RuntimeError(
-            f"{self._name} does not pre-place required characters (-rc) and would softlock. "
-            f"Add an event-specific party placement (see instruction/field/required_characters.py)."
-        )
-    __index__ = __int__ = __sub__ = __rsub__ = _fail
 
 def _select_party_mod():
     src = _refresh_characters_and_select_parties_mod(1)
@@ -89,11 +63,6 @@ def _select_two_parties_mod():
 REFRESH_CHARACTERS_AND_SELECT_TWO_PARTIES = _select_two_parties_mod()
 
 def _select_three_parties_mod():
-    if args.required_character_ids:
-        # the only three-party select (Kefka Tower) does its own normal/skip distribution via raw
-        # SelectParties; there is no canonical distribution for a generic helper, so guard it
-        # against silently reintroducing the unmovable-outside-party softlock.
-        return _RequiredCharactersGuard("REFRESH_CHARACTERS_AND_SELECT_THREE_PARTIES")
     src = _refresh_characters_and_select_parties_mod(3)
     space = Write(Bank.CA, src, "field function refresh characters and select three parties")
     return space.start_address

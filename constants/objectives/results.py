@@ -101,8 +101,6 @@ category_types["Item"].append(ResultType(70, "High Tier Armor", "High Tier Armor
 category_types["Item"].append(ResultType(71, "High Tier Shield", "High Tier Shield", None))
 category_types["Item"].append(ResultType(72, "High Tier Helm", "High Tier Helm", None))
 category_types["Item"].append(ResultType(73, "High Tier Relic", "High Tier Relic", None))
-category_types["Stat"].append(ResultType(74, "MaxHP All", "{:+d} Max HP All", list(range(-9999, 10000))))
-category_types["Stat"].append(ResultType(75, "MaxHP Random", "{:+d} Max HP {}", list(range(-9999, 10000))))
 
 categories = list(category_types.keys())
 

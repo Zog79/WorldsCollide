@@ -27,7 +27,7 @@ class CidIsland(Event):
 
     def dialog_mod(self):
         # shorten dialog to single line to start feeding event
-        self.dialogs.set_text(dialog_id.CID_FEEDING, "CID: I…haven't eaten in 3 or so days, ever since I became ill.<end>")
+        self.dialogs.set_text(2175, "CID: I…haven't eaten in 3 or so days, ever since I became ill.<end>")
 
         # take out celes's name
         self.dialogs.set_text(2176, "CID: I feel much better!<line>Thanks!<end>")
@@ -60,7 +60,7 @@ class CidIsland(Event):
         FEED_CID = 0xa5380              # take fish, apply to cid's health, check if survived
         src = [
             field.StartTimer(0, 64, DECREMENT_HEALTH, pause_in_menu_and_battle = True),
-            field.Dialog(dialog_id.CID_FEEDING),
+            field.Dialog(2175),
             field.SetEventBit(event_bit.STARTED_FEEDING_CID),
             field.SetEventBit(event_bit.multipurpose_map(0)),
             field.SetEventBit(npc_bit.CID_IN_BED_CID_HOUSE),
