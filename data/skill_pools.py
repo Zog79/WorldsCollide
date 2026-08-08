@@ -152,7 +152,7 @@ def write_command_properties(command_name, properties, targeting):
     space.write(properties, targeting)
 
 
-def write_magic_known_spell_fix(args, magic_character_indices, spell_name="Cure"):
+def write_magic_known_spell_fix(args, magic_character_indices):
     """Garantit qu'un personnage ayant reçu Magic via notre système connaît
     au moins un sort, pour satisfaire le check vanilla (banque C3, adresse
     locale $0D2B, "check to see if character knows magic") qui remplace
@@ -181,8 +181,6 @@ def write_magic_known_spell_fix(args, magic_character_indices, spell_name="Cure"
     from memory.space import Bank, Reserve, Write, Read
 
     learned_spells_start = 0x1a6e
-    spell_id = name_id[spell_name]
-
     # réplique fidèle de settings/initial_spells.py (-scan_all/-warp_all)
     # pour rester compatible si ces flags sont actifs en même temps
     all_characters_spells = []
@@ -228,7 +226,10 @@ def write_magic_known_spell_fix(args, magic_character_indices, spell_name="Cure"
     # notre ajout : un sort garanti, uniquement pour les personnages
     # précis ayant reçu Magic via notre système -- adresse fixe connue à
     # l'avance (pas de boucle nécessaire), aucun autre personnage touché
+    # un sort vanilla ALÉATOIRE par personnage (parmi les Spells.SPELL_COUNT
+    # sorts standards, id 0 à SPELL_COUNT-1), pas le même pour tout le monde
     for character_index in magic_character_indices:
+        spell_id = random.randrange(Spells.SPELL_COUNT)
         address = learned_spells_start + Spells.SPELL_COUNT * character_index + spell_id
         src += [
             asm.LDA(0xff, asm.IMM8),
