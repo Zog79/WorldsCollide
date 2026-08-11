@@ -12,9 +12,10 @@ def parse(parser):
                             help = "Recruited characters start with no equipment")
     characters.add_argument("-eu", "--equipable-umaro", action = "store_true",
                             help = "Umaro can access equipment menu")
-    characters.add_argument("-csrp", "--character-stat-random-percent", default = [100, 100], type = int,
+    characters.add_argument("-csrp", "--character-stat-random-percent", default = None, type = int,
                             nargs = 2, metavar = ("MIN", "MAX"), choices = range(201),
-                            help = "Each character stat set to random percent of original within given range ")
+                            help = "Each character stat set to random percent of original within given range "
+                                   "(also enables the Status Menu stat color indicator)")
 
 def process(args):
     args._process_min_max("character_stat_random_percent")
@@ -30,13 +31,16 @@ def flags(args):
         flags += " -sn"
     if args.equipable_umaro:
         flags += " -eu"
-    if args.character_stat_random_percent_min != 100 or args.character_stat_random_percent_max != 100:
+    if args.character_stat_random_percent:
         flags += f" -csrp {args.character_stat_random_percent_min} {args.character_stat_random_percent_max}"
 
     return flags
 
 def options(args):
-    character_stats = f"{args.character_stat_random_percent_min}-{args.character_stat_random_percent_max}%"
+    if args.character_stat_random_percent:
+        character_stats = f"{args.character_stat_random_percent_min}-{args.character_stat_random_percent_max}%"
+    else:
+        character_stats = "Original"
 
     return [
         ("Start Average Level", args.start_average_level, "start_average_level"),

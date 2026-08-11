@@ -2,6 +2,7 @@ import data.dialogs as dialogs
 import data.spells as spells
 import data.characters as characters
 import data.items as items
+import data.innate_relics as innate_relics
 import data.metamorph_groups as metamorph_groups
 import data.maps as maps
 import data.enemies as enemies
@@ -34,6 +35,11 @@ class Data:
 
         self.items = items.Items(rom, args, self.dialogs, self.characters)
         self.items.mod()
+
+        # needs both characters and items (to pick from the actual, already-modded item pool by name),
+        # so it can't run from characters.mod() -- has to be its own step here, after items.mod()
+        self.innate_relics = innate_relics.InnateRelics(rom, args, self.characters, self.items)
+        self.innate_relics.mod()
 
         self.metamorph_groups = metamorph_groups.MetamorphGroups(rom)
         self.metamorph_groups.mod()
@@ -100,6 +106,7 @@ class Data:
         self.dialogs.write()
         self.characters.write()
         self.items.write()
+        self.innate_relics.write()
         self.metamorph_groups.write()
         self.maps.write()
         self.enemies.write()

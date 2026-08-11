@@ -55,6 +55,13 @@ def parse(parser):
                        help="All weapons enable swdtech and runic")
     items.add_argument("-saw", "--stronger-atma-weapon", action="store_true",
                        help="Atma Weapon moved to higher tier and divisor reduced from 64 to 32")
+    items.add_argument("-irm", "--item-rarity-markers", action="store_true",
+                       help="Mark item rarity directly in the item's name with a suffix: "
+                            "\"!\" for items in the Item Rewards standard/stronger pools, "
+                            "\"!!\" for items in the Item Rewards premium pool. "
+                            "The marker then shows up wherever the item's name is displayed "
+                            "(chests, equip, inventory, relics, shops, etc). Purely cosmetic, "
+                            "does not change item selection, randomization, or rewards.")
 
 
 def process(args):

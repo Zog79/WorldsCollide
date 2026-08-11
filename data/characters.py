@@ -92,12 +92,31 @@ class Characters():
         import random
         stats = ["init_extra_hp", "init_extra_mp", "init_vigor", "init_speed", "init_stamina", "init_magic",
                  "init_attack", "init_defense", "init_magic_defense", "init_evasion", "init_magic_evasion"]
+
+        # capture additive de la valeur vanilla de référence (avant
+        # randomisation) pour chaque personnage/stat -- ne modifie ni le
+        # calcul, ni la formule, ni la valeur finale ci-dessous ; sert
+        # uniquement de référence pour le code couleur de l'écran de
+        # statut (menus/status.py::mod_stat_colors)
+        self.vanilla_stats = {character.id: {} for character in self.characters}
+
+        # capture additive du pourcentage RÉELLEMENT TIRÉ par
+        # random.randint() ci-dessous, avant troncature/écrêtage -- ne
+        # génère aucun nouveau nombre aléatoire, n'observe que la valeur
+        # déjà produite par l'appel existant ; sert de référence au code
+        # couleur de l'écran de statut (menus/status.py::mod_stat_colors),
+        # à la place d'un rapport final/vanilla recalculé après coup
+        # (instable pour les petites valeurs vanilla, ex. MBlock=1)
+        self.stat_random_percents = {character.id: {} for character in self.characters}
+
         for character in self.characters:
             for stat in stats:
                 stat_value = getattr(character, stat)
+                self.vanilla_stats[character.id][stat] = stat_value
                 if stat_value != 0:
                     character_stat_percent = random.randint(self.args.character_stat_random_percent_min,
                                                             self.args.character_stat_random_percent_max) / 100.0
+                    self.stat_random_percents[character.id][stat] = character_stat_percent
                     value = int(stat_value * character_stat_percent)
                     setattr(character, stat, max(min(value, 255), 0))
 

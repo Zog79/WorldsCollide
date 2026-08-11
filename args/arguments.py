@@ -4,7 +4,7 @@ class Arguments:
         self.groups = [
             "settings",
             "objectives",
-            "starting_party", "characters", "swdtechs", "blitzes", "lores", "rages", "dances", "steal", "sketch_control", "commands", "skill_pools",
+            "starting_party", "characters", "innate_relics", "swdtechs", "blitzes", "lores", "rages", "dances", "steal", "sketch_control", "commands", "skill_pools",
             "xpmpgp", "scaling", "bosses", "encounters", "boss_ai",
             "espers", "natural_magic", "misc_magic",
             "starting_gold_items", "items", "shops", "chests",

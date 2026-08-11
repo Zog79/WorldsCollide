@@ -315,12 +315,58 @@ class Items():
         self.available_dialogs.append(1823)
         self.available_dialogs.extend(list(range(1825, 1830)))
 
+        if self.args.item_rarity_markers:
+            self.add_rarity_markers()
+
         # generate receive item dialogs for good items
         self.receive_dialogs = {}
         for item_id in self.GOOD:
             self.add_receive_dialog(item_id)
 
         self.moogle_starting_equipment()
+
+    def add_rarity_markers(self):
+        # marque la rareté directement dans les données du nom de l'objet
+        # (self.name, réécrit tel quel par Item.write() plus bas) plutôt
+        # que par un traitement propre à un écran/une routine de dessin --
+        # même principe que mutate_name() de Beyond Chaos : le marqueur
+        # apparaît alors automatiquement partout où le nom est affiché
+        # (coffres, équipement, inventaire, reliques, boutiques...), sans
+        # toucher à aucun moteur de rendu.
+        #
+        # Rareté = appartenance aux listes déjà existantes de WC
+        # (constants/items.py), réutilisées telles quelles, sans aucune
+        # modification : very_rare = premium_items ; rare = good_items
+        # moins premium_items ; le reste = commun, sans marqueur.
+        # stronger_items n'intervient PAS dans ce système visuel -- il
+        # continue d'exister et de fonctionner normalement pour ses
+        # propres usages vanilla de WC (ex. --item-rewards stronger),
+        # simplement sans influence ici.
+        very_rare_ids = {name_id[name] for name in premium_items}
+        rare_ids = {name_id[name] for name in good_items}
+        rare_ids -= very_rare_ids
+
+        max_name_length = Item.NAME_LENGTH - 1  # le premier octet du nom est l'icône d'équipement, pas du texte (voir Item.read()/write())
+
+        for item in self.items:
+            if item.id == self.EMPTY:
+                continue
+
+            if item.id in very_rare_ids:
+                suffix = "!!"
+            elif item.id in rare_ids:
+                suffix = "!"
+            else:
+                continue
+
+            if len(item.name) + len(suffix) <= max_name_length:
+                item.name = item.name + suffix
+            else:
+                # nom déjà à la longueur maximale (ou proche) : comme
+                # Beyond Chaos, on écrase les derniers caractères du nom
+                # vanilla plutôt que de dépasser la limite existante
+                keep = max_name_length - len(suffix)
+                item.name = item.name[:keep] + suffix
 
     def write(self):
         for item in self.items:
