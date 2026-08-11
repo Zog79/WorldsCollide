@@ -137,10 +137,81 @@ CARRIER_POOL = ["Morph", "Revert", "Steal", "Capture", "SwdTech", "Throw",
 NEVER_REPLACE = PROTECTED_ALWAYS + VANILLA_NAMED + CARRIER_POOL
 
 
+def choose_exclusive_carrier_command(active_carrier_pool, used, used_globally):
+    """Choisit une commande du pool -rsk (CARRIER_POOL) pour un slot donné.
+    Renvoie TOUJOURS une commande de `active_carrier_pool`, JAMAIS une
+    commande vanilla (Fight/Magic/Item/Row/Def/...) -- celles-ci restent
+    entièrement gérées ailleurs, cette fonction ne les touche jamais, ni
+    pour les y injecter, ni pour les dédupliquer.
+
+    Exclusivité STRICTE, sans exception : une commande déjà donnée à
+    N'IMPORTE QUEL personnage cette seed (`used_globally`) n'est plus
+    jamais reproposée à qui que ce soit d'autre -- jamais de réutilisation
+    "en dernier recours". Une commande déjà présente chez CE personnage
+    (`used`) n'est pas non plus reproposée à lui (empêche qu'un même
+    personnage reçoive deux fois la même skill -rsk).
+
+    Retourne None si le pool actif est épuisé pour cette contrainte --
+    mathématiquement possible quand il y a plus de personnages/slots que
+    d'entrées dans CARRIER_POOL une fois les réservations de slot 2
+    (-com/natif) retirées. Voir resolve_carrier_slot() pour la décision
+    finale prise dans ce cas par l'appelant."""
+    choices = [c for c in active_carrier_pool if c not in used and c not in used_globally]
+    if not choices:
+        return None
+    return random.choice(choices)
+
+
+def resolve_carrier_slot(active_carrier_pool, used, used_globally, current_name,
+                          extra_forbidden = (), fallback = "Item"):
+    """Détermine la commande à écrire pour un slot -rsk (slot 3 ou 4).
+
+    1. Tente d'abord une attribution -rsk exclusive (choose_exclusive_carrier_command).
+    2. Si le pool est épuisé, ne conserve le contenu PRÉEXISTANT du slot
+       (`current_name`, vanilla/natif -- ce qu'il y avait avant que notre
+       système n'y touche) QUE s'il est sûr :
+       - jamais Fight/Magic -- ces deux commandes sont réservées au slot 1
+         par la conception même de -rsk (choix exclusif fait plus haut
+         dans SkillPools.mod()) et ne doivent jamais se retrouver ailleurs,
+         même en repli (vanilla FF6 place fréquemment Magic nativement en
+         3e commande pour beaucoup de personnages -- c'est précisément ce
+         contenu préexistant qu'il ne faut pas laisser fuiter ici) ;
+       - jamais une commande listée dans `extra_forbidden` -- utilisé par
+         le slot 3 pour exclure "Item" (réservé au slot 4, 50% de chances,
+         jamais ailleurs -- même raison que Fight/Magic : vanilla place
+         parfois Item nativement en 3e commande, ce contenu préexistant ne
+         doit pas fuiter ici et surtout pas produire un doublon Item avec
+         le slot 4) ;
+       - et jamais une commande -rsk déjà exclusivement attribuée à un
+         AUTRE personnage (cas où un -com explicite avait par coïncidence
+         placé là une commande de notre pool déjà prise ailleurs).
+    3. Si le contenu préexistant n'est aucun de ces cas, il est sûr et
+       conservé tel quel (hors de CARRIER_POOL, ou dedans mais pas encore
+       réclamé -- aucun risque de doublon ni de déplacement de Fight/Magic/Item).
+    4. Dernier recours (repli préexistant non sûr) : `fallback`. "Item" par
+       défaut pour le slot 4 (déjà sa branche normale à 50%, comportement
+       inchangé). Le slot 3 passe explicitement "None" (emplacement vide,
+       0xFF -- pas une vraie commande, jamais Fight/Magic/Item/Row/Def ni
+       aucune commande vanilla positionnée : ne déplace, ne randomise et
+       n'invente aucune commande, contrairement à un nom vanilla précis)."""
+    chosen = choose_exclusive_carrier_command(active_carrier_pool, used, used_globally)
+    if chosen is not None:
+        return chosen
+
+    reserved_to_slot1 = current_name in ("Fight", "Magic")
+    reserved_elsewhere = current_name in extra_forbidden
+    already_claimed_elsewhere = current_name in active_carrier_pool and current_name in used_globally
+    if not reserved_to_slot1 and not reserved_elsewhere and not already_claimed_elsewhere:
+        return current_name  # repli sûr : préexistant, ni Fight/Magic/Item, ni réclamé ailleurs
+
+    return fallback  # jamais Fight/Magic hors slot 1, jamais Item hors slot 4, jamais une skill -rsk dupliquée
+
+
 def write_command_properties(command_name, properties, targeting):
     """Porte CommandBlock.write_properties() de BC : propriétés (usable en
     tant qu'imp/mimable/gogo) et bits de ciblage d'une commande. Nécessaire
     pour que le curseur de sélection de cible corresponde au VRAI sort
+
     assigné plutôt qu'à celui de la commande d'origine (ex. Blitz)."""
     from constants.commands import name_id
     from memory.space import Reserve
@@ -350,10 +421,12 @@ class SkillPools:
         vanilla_chance = getattr(self.args, "randomize_skills_vanilla_chance", 0.5)
         fight_magic_chance = getattr(self.args, "randomize_skills_magic_chance", 0.5)
 
-        # commandes de NOTRE système déjà données à un personnage cette
-        # seed -- on les évite en priorité pour les autres personnages,
-        # tant que le pool actif le permet, pour maximiser la diversité
-        # (ne s'applique jamais à Fight/Magic/Item/vanilla WC/protégées)
+        # commandes de NOTRE système (CARRIER_POOL) déjà données à un
+        # personnage cette seed -- EXCLUES pour tous les autres personnages
+        # (une skill -rsk n'est jamais donnée à deux personnages), voir
+        # choose_exclusive_carrier_command(). Ne s'applique jamais à
+        # Fight/Magic/Item/vanilla WC/protégées, qui restent libres de se
+        # répéter comme le vanilla/WC natif le permet déjà.
         used_globally = set()
 
         # personnages ayant reçu Magic via notre système cette seed -- sert
@@ -397,22 +470,23 @@ class SkillPools:
                     else:
                         chosen = "Fight"
                 elif slot == 2:
-                    # 100% aléatoire, jamais vanilla, jamais vide, en
-                    # priorité une commande pas encore utilisée par un
-                    # autre personnage cette seed
-                    choices = [c for c in active_carrier_pool if c not in used and c not in used_globally] \
-                        or [c for c in active_carrier_pool if c not in used] \
-                        or list(active_carrier_pool)
-                    chosen = random.choice(choices)
+                    # 100% une commande -rsk EXCLUSIVE, sans exception --
+                    # jamais donnée à un autre personnage cette seed, et
+                    # jamais réutilisée. Voir resolve_carrier_slot() pour
+                    # le repli si le pool actif est épuisé -- "Item" y est
+                    # explicitement exclu (réservé au slot 4 uniquement),
+                    # et le dernier recours est un emplacement vide
+                    # ("None"), jamais une commande vanilla nommée
+                    # (Row/Def/... restent protégées plus haut, jamais
+                    # déplacées ici).
+                    chosen = resolve_carrier_slot(active_carrier_pool, used, used_globally, current_name,
+                                                   extra_forbidden = ("Item",), fallback = "None")
                 else:
                     # slot 3 (Item 50%)
                     if random.random() < vanilla_chance and "Item" not in used:
                         chosen = "Item"
                     else:
-                        choices = [c for c in active_carrier_pool if c not in used and c not in used_globally] \
-                            or [c for c in active_carrier_pool if c not in used] \
-                            or list(active_carrier_pool)
-                        chosen = random.choice(choices)
+                        chosen = resolve_carrier_slot(active_carrier_pool, used, used_globally, current_name)
 
                 character.commands[slot] = name_id[chosen]
                 used.add(chosen)
